@@ -61,6 +61,9 @@ ul.todo-list li button {
     margin-left: 80px;
     
  }
+ p {
+    color: white
+ }
  body {
     background-color: rgb(67, 64, 64);
  }
