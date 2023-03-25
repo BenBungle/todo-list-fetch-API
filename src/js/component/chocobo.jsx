@@ -65,6 +65,7 @@ function Applist() {
       newTodos[editingIndex].label = inputValue;
       setTodos(newTodos);
       setEditingIndex(-1);
+      updateAPI(newTodos);
     }
     setInputValue("");
   };
