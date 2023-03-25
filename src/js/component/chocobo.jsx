@@ -4,13 +4,49 @@ function Applist() {
   const [todos, setTodos] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [editingIndex, setEditingIndex] = useState(-1);
+  const url = "https://assets.breatheco.de/apis/fake/todos/user/benbungle";
 
   useEffect(() => {
-    const storedTodos = localStorage.getItem("todos");
-    if (storedTodos) {
-      setTodos(JSON.parse(storedTodos));
-    }
+    const requestOptions = {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+    fetch(url, requestOptions)
+      .then((response) => response.json())
+      .then((data) => setTodos(data))
+      .catch((error) => console.log("error", error));
   }, []);
+
+  const updateAPI = (todos) => {
+    fetch(url, {
+      method: "PUT",
+      body: JSON.stringify(todos),
+      headers: {
+        "Content-type": "application/json",
+      },
+    })
+      .then((resp) => {
+        console.log(resp.ok); // Será true (verdad) si la respuesta es exitosa.
+        console.log(resp.status); // el código de estado = 200 o código = 400 etc.
+        console.log(resp.json()); // Intentará devolver el resultado exacto como cadena (string)
+        return resp.json(); // (regresa una promesa) will try to parse the result as json as return a promise that you can .then for results
+      })
+      .then((data) => {
+        //Aquí es donde debe comenzar tu código después de que finalice la búsqueda
+        console.log(data); //esto imprimirá en la consola el objeto exacto recibido del servidor
+      })
+      .catch((error) => {
+        //manejo de errores
+        console.log(error);
+      });
+  };
+  useEffect(() => {
+    if (editingIndex !== -1) {
+      updateAPI(todos);
+    }
+  }, [editingIndex]);
 
   useEffect(() => {
     localStorage.setItem("todos", JSON.stringify(todos));
@@ -21,10 +57,12 @@ function Applist() {
       return;
     }
     if (editingIndex === -1) {
-      setTodos([...todos, inputValue]);
+      const newTodos = [...todos, { label: inputValue, done: false }];
+      setTodos(newTodos);
+      updateAPI(newTodos);
     } else {
       const newTodos = [...todos];
-      newTodos[editingIndex] = inputValue;
+      newTodos[editingIndex].label = inputValue;
       setTodos(newTodos);
       setEditingIndex(-1);
     }
@@ -33,17 +71,17 @@ function Applist() {
 
   const handleEditTodo = (index) => {
     setEditingIndex(index);
-    setInputValue(todos[index]);
+    setInputValue(todos[index].label);
   };
 
   const handleDeleteTodo = (index) => {
     const newTodos = [...todos];
     newTodos.splice(index, 1);
     setTodos(newTodos);
+    updateAPI(newTodos);
   };
 
-  const remainingTasks = todos.filter(todo => !todo.completed).length;
-
+  const remainingTasks = todos.filter((todo) => !todo.done).length;
 
   return (
     <div className="Applist">
@@ -60,9 +98,9 @@ function Applist() {
         </button>
       </div>
       <ul className="todo-list">
-        {todos.map((todo, index) => (
+        {todos.map((todos, index) => (
           <li key={index}>
-            {todo}
+            {todos.label}
             <div>
               <button
                 className="justify-content-end"
